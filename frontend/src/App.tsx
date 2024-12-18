@@ -4,17 +4,31 @@ import axios from "axios";
 const App: React.FC = () => {
   const [cvText, setCvText] = useState("");
   const [suggestions, setSuggestions] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSuggestions("");
+    setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/process-cv", {
-        cvText,
-      });
+      console.log("Submitting CV text:", cvText);
+      const response = await axios.post(
+        "http://127.0.0.1:5000/process-cv",
+        { cvText },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Response received:", response.data);
       setSuggestions(response.data.suggestions);
-    } catch (error) {
-      console.error("Error processing CV:", error);
+    } catch (error: any) {
+      console.error("Error occurred:", error.response || error.message);
+      setError(
+        error.response?.data?.error || "An unexpected error occurred. Check the backend."
+      );
     }
   };
 
@@ -35,6 +49,12 @@ const App: React.FC = () => {
         <div style={{ marginTop: "20px" }}>
           <h2>Suggestions:</h2>
           <p>{suggestions}</p>
+        </div>
+      )}
+      {error && (
+        <div style={{ marginTop: "20px", color: "red" }}>
+          <h2>Error:</h2>
+          <p>{error}</p>
         </div>
       )}
     </div>
