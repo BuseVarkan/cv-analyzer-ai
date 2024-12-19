@@ -2,30 +2,42 @@ import React, { useState } from "react";
 import axios from "axios";
 
 const App: React.FC = () => {
-  const [cvText, setCvText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [suggestions, setSuggestions] = useState("");
   const [error, setError] = useState("");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuggestions("");
     setError("");
 
+    if (!file) {
+      setError("Please upload a PDF file.");
+      return;
+    }
+
     try {
-      console.log("Submitting CV text:", cvText);
+      const formData = new FormData();
+      formData.append("cvFile", file);
+
       const response = await axios.post(
         "http://127.0.0.1:5000/process-cv",
-        { cvText },
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
-      console.log("Response received:", response.data);
+
       setSuggestions(response.data.suggestions);
     } catch (error: any) {
-      console.error("Error occurred:", error.response || error.message);
       setError(
         error.response?.data?.error || "An unexpected error occurred. Check the backend."
       );
@@ -36,13 +48,7 @@ const App: React.FC = () => {
     <div style={{ padding: "20px" }}>
       <h1>CV Improvement Suggestions</h1>
       <form onSubmit={handleSubmit}>
-        <textarea
-          value={cvText}
-          onChange={(e) => setCvText(e.target.value)}
-          placeholder="Paste your CV here"
-          rows={10}
-          style={{ width: "100%" }}
-        ></textarea>
+        <input type="file" accept="application/pdf" onChange={handleFileChange} />
         <button type="submit" style={{ marginTop: "10px" }}>Submit</button>
       </form>
       {suggestions && (
