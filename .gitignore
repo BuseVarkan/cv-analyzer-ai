@@ -31,3 +31,5 @@ frontend/.idea/
 # OS-Specific
 *.swp
 *.swo
+
+config/
