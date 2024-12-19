@@ -28,7 +28,6 @@ def process_cv():
         if not cv_text.strip():
             return jsonify({"error": "No text found in the uploaded PDF"}), 400
 
-        # Call OpenAI API
         prompt="Review this CV and provide suggestions for improvement."
 
         completion = client.chat.completions.create(
