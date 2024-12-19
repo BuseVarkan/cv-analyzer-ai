@@ -1,13 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import openai
-from config.api_keys import OPENAI_API_KEY
-import PyPDF2
+from utils.ai_utils import generate_suggestions
+from utils.pdf_utils import extract_text_from_pdf
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route('/process-cv', methods=['OPTIONS', 'POST'])
 def process_cv():
@@ -20,28 +18,13 @@ def process_cv():
     file = request.files['cvFile']
 
     try:
-        pdf_reader = PyPDF2.PdfReader(file)
-        cv_text = ""
-        for page in pdf_reader.pages:
-            cv_text += page.extract_text()
+        cv_text = extract_text_from_pdf(file)
 
         if not cv_text.strip():
             return jsonify({"error": "No text found in the uploaded PDF"}), 400
 
-        prompt="Review this CV and provide suggestions for improvement."
-
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt},
-                {
-                    "role": "user",
-                    "content": cv_text
-                }
-            ]
-        )
-
-        suggestions = completion.choices[0].message.content
+        
+        suggestions = generate_suggestions(cv_text)
 
         return jsonify({"suggestions": suggestions})
 
