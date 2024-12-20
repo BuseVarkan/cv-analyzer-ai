@@ -1,20 +1,96 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Container, Button, Typography, Paper, LinearProgress } from "@mui/material";
+import { 
+  Container, 
+  Button, 
+  Typography, 
+  Paper, 
+  LinearProgress,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton,
+} from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
 import "./App.css";
+
+const sectionTitles = {
+  personal_info: "Personal Information",
+  work_experience: "Work Experience",
+  education: "Education",
+  skills: "Skills",
+  certifications: "Certifications",
+  languages: "Languages",
+  projects: "Projects",
+  volunteering: "Volunteering",
+  unknown: "Additional Information"
+};
 
 const App: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [sections, setSections] = useState<{ [key: string]: string[] }>({});
   const [suggestions, setSuggestions] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingSections, setEditingSections] = useState<{ [key: string]: boolean }>({});
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
       setError("");
+      setLoading(true);
+      setSuggestions("");
+      
+      try {
+        const formData = new FormData();
+        formData.append("cvFile", e.target.files[0]);
+
+        const response = await axios.post(
+          "http://127.0.0.1:5000/extract-text",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        
+        setSections(response.data.structured_content || {});
+        // Initialize editing state for all sections
+        const initialEditingState: { [key: string]: boolean } = {};
+        Object.keys(response.data.structured_content || {}).forEach(section => {
+          initialEditingState[section] = false;
+        });
+        setEditingSections(initialEditingState);
+
+      } catch (error: any) {
+        setError(
+          error.response?.data?.error || "An error occurred while extracting text."
+        );
+        setSections({});
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  const toggleSectionEdit = (section: string) => {
+    setEditingSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const handleSectionChange = (section: string, index: number, value: string) => {
+    setSections(prev => ({
+      ...prev,
+      [section]: prev[section].map((content, i) => i === index ? value : content)
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,22 +99,26 @@ const App: React.FC = () => {
     setError("");
     setLoading(true);
 
-    if (!file) {
-      setError("Please upload a PDF file.");
+    // Combine all sections into one text
+    const combinedText = Object.entries(sections)
+      .map(([section, contents]) => {
+        return `### ${sectionTitles[section as keyof typeof sectionTitles] || section}\n${contents.join('\n\n')}`;
+      })
+      .join('\n\n');
+
+    if (!combinedText.trim()) {
+      setError("Please provide some text to analyze.");
       setLoading(false);
       return;
     }
 
     try {
-      const formData = new FormData();
-      formData.append("cvFile", file);
-
       const response = await axios.post(
-        "http://127.0.0.1:5000/process-cv",
-        formData,
+        "http://127.0.0.1:5000/generate-suggestions",
+        { cv_text: combinedText },
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
@@ -53,16 +133,8 @@ const App: React.FC = () => {
     }
   };
 
-  const escapeHtml = (text: string) => {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  };
-
   const formatSuggestions = (text: string) => {
     const lines = text.split('\n');
-
     let inCodeBlock = false;
     const htmlLines: string[] = [];
 
@@ -79,7 +151,7 @@ const App: React.FC = () => {
           htmlLines.push('</code></pre>');
           continue;
         } else {
-          htmlLines.push(escapeHtml(line));
+          htmlLines.push(line);
           continue;
         }
       }
@@ -122,6 +194,48 @@ const App: React.FC = () => {
               onChange={handleFileChange}
             />
           </Button>
+          
+          {/* Sections Editor */}
+          <div className="sections-container">
+            {Object.entries(sections).map(([section, contents]) => (
+              <Accordion key={section} className="section-accordion">
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  className="section-header"
+                >
+                  <Typography variant="h6">
+                    {sectionTitles[section as keyof typeof sectionTitles] || section}
+                  </Typography>
+                  <IconButton 
+                    size="small" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSectionEdit(section);
+                    }}
+                    className="edit-button"
+                  >
+                    {editingSections[section] ? <SaveIcon /> : <EditIcon />}
+                  </IconButton>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {contents.map((content, index) => (
+                    <TextField
+                      key={`${section}-${index}`}
+                      multiline
+                      fullWidth
+                      variant="outlined"
+                      value={content}
+                      onChange={(e) => handleSectionChange(section, index, e.target.value)}
+                      disabled={!editingSections[section]}
+                      className="section-content"
+                      sx={{ mb: 2 }}
+                    />
+                  ))}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </div>
+
           <Button
             type="submit"
             variant="contained"
@@ -129,7 +243,7 @@ const App: React.FC = () => {
             className="submitButton"
             disabled={loading}
           >
-            {loading ? "Processing..." : "Submit"}
+            {loading ? "Processing..." : "Get Suggestions"}
           </Button>
         </form>
         {loading && <LinearProgress className="progressBar" />}
