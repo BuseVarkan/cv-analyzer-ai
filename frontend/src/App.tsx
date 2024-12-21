@@ -39,6 +39,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [savingButton, setSavingButton] = useState(false);
   const [editingSections, setEditingSections] = useState<{ [key: string]: boolean }>({});
+  const [jobDescription, setJobDescription] = useState("");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -140,6 +141,17 @@ const App: React.FC = () => {
           CV Improvement Suggestions
         </Typography>
         <form onSubmit={handleSubmit} className="form">
+          {/* Job Description */}
+          <TextField
+          label="Job Description"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          placeholder="Enter the job description here..."
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          />
+
           {/* File Upload Button */}
           <Button
             variant="outlined"

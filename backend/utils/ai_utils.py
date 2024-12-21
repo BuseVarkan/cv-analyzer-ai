@@ -1,18 +1,18 @@
+import json
 import openai
 from config.api_keys import OPENAI_API_KEY
 from prompts.extractor_prompt import system_prompt as extractor_system_prompt
+from prompts.suggestions_prompt import system_prompt as suggestions_system_prompt
 
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-def generate_suggestions(cv_text: str) -> str:
-
-    prompt = "Review this CV and provide suggestions for improvement."
+def generate_suggestions(cv_json: json) -> str:
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": cv_text}
+            {"role": "system", "content": suggestions_system_prompt()},
+            {"role": "user", "content": cv_json}
         ],
         temperature=0.0,
         max_tokens=1500
