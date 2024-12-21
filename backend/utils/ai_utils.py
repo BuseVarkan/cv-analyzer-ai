@@ -6,13 +6,13 @@ from prompts.suggestions_prompt import system_prompt as suggestions_system_promp
 
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-def generate_suggestions(cv_json: json) -> str:
+def generate_suggestions(cv_json: json, job_description: str) -> str:
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": suggestions_system_prompt()},
-            {"role": "user", "content": cv_json}
+            {"role": "system", "content": suggestions_system_prompt(job_description)},
+            {"role": "user", "content": json.dumps(cv_json)}
         ],
         temperature=0.0,
         max_tokens=1500

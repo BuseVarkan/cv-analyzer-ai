@@ -44,11 +44,12 @@ def generate_suggestions_endpoint():
     try:
         data = request.get_json()
         cv_json = data.get('cv_text', '')
+        job_description = data.get('job_description', '')
         
         if not cv_json:
             return jsonify({"error": "No CV provided"}), 400
             
-        suggestions = generate_suggestions(cv_json)
+        suggestions = generate_suggestions(cv_json, job_description)
         return jsonify({"suggestions": suggestions})
 
     except Exception as e:

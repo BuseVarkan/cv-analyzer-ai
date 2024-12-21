@@ -110,7 +110,7 @@ const App: React.FC = () => {
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/generate-suggestions",
-        { cv_text: sections },
+        { cv_text: sections , job_description: jobDescription},
         {
           headers: {
             "Content-Type": "application/json",
@@ -249,6 +249,14 @@ const App: React.FC = () => {
         {loading && <LinearProgress className="progressBar" />}
 
       </Paper>
+        
+        {/* print suggestions here */}
+        <Typography variant="h6" align="center" gutterBottom>
+          Suggestions
+        </Typography>
+        <Typography variant="body1" align="center" gutterBottom>
+          {suggestions}
+        </Typography>
     </Container>
   );
 };
