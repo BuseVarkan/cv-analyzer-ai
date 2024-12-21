@@ -16,9 +16,10 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
+import DeleteIcon from "@mui/icons-material/Delete";
 import "./App.css";
 
-const sectionTitles: { [key: string]: string } = {
+const sectionTitles = {
   personal_info: "Personal Information",
   work_experience: "Work Experience",
   education: "Education",
@@ -30,15 +31,34 @@ const sectionTitles: { [key: string]: string } = {
   unknown: "Additional Information",
 };
 
+const defaultSectionItem = {
+  personal_info: { name: "", email: "", phone: "" },
+  work_experience: { company: "", position: "", responsibilities: "", start_date: "", end_date: "" },
+  education: {
+    school: "",
+    degree: "",
+    field_of_study: "",
+    institution: "",
+    start_date: "",
+    end_date: "",
+    graduation_year: "",
+  },
+  skills: { skill: "" },
+  certifications: { certification: "", issuer: "" },
+  languages: { language: "", proficiency: "" },
+  projects: { project_name: "", description: "" },
+  volunteering: { organization: "", role: "" },
+  unknown: { key: "", value: "" },
+};
 
-const App: React.FC = () => {
+const App = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [sections, setSections] = useState<{ [key: string]: string[] }>({});
+  const [sections, setSections] = useState<Record<string, any>>({});
   const [suggestions, setSuggestions] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [savingButton, setSavingButton] = useState(false);
-  const [editingSections, setEditingSections] = useState<{ [key: string]: boolean }>({});
+  const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [jobDescription, setJobDescription] = useState("");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +67,7 @@ const App: React.FC = () => {
       setError("");
       setLoading(true);
       setSuggestions("");
-      
+
       try {
         const formData = new FormData();
         formData.append("cvFile", e.target.files[0]);
@@ -61,9 +81,9 @@ const App: React.FC = () => {
             },
           }
         );
-        
+
         setSections(response.data.structured_content || {});
-      } catch (error: any) {
+      } catch (error) {
         setError(
           error.response?.data?.error || "An error occurred while extracting text."
         );
@@ -82,18 +102,40 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleFieldChange = (
-    section: string,
-    index: number,
-    key: string,
-    value: string
-  ) => {
-    setSections((prevSections: any) => {
+  const handleFieldChange = (section: string, index: number, key: string, value: string) => {
+    if (
+      (key === "graduation_year" || key === "start_date" || key === "end_date") &&
+      isNaN(Number(value))
+    ) {
+      return;
+    }
+
+    setSections((prevSections) => {
       const updatedSection = [...prevSections[section]];
       updatedSection[index] = {
         ...updatedSection[index],
         [key]: value,
       };
+      return {
+        ...prevSections,
+        [section]: updatedSection,
+      };
+    });
+  };
+
+  const handleAddItem = (section: string) => {
+    setSections((prevSections) => ({
+      ...prevSections,
+      [section]: prevSections[section]
+        ? [...prevSections[section], { ...defaultSectionItem[section] }]
+        : [{ ...defaultSectionItem[section] }],
+    }));
+  };
+
+  const handleDeleteItem = (section: string, index: number) => {
+    setSections((prevSections) => {
+      const updatedSection = [...prevSections[section]];
+      updatedSection.splice(index, 1);
       return {
         ...prevSections,
         [section]: updatedSection,
@@ -110,7 +152,7 @@ const App: React.FC = () => {
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/generate-suggestions",
-        { cv_text: sections , job_description: jobDescription},
+        { cv_text: sections, job_description: jobDescription },
         {
           headers: {
             "Content-Type": "application/json",
@@ -119,9 +161,10 @@ const App: React.FC = () => {
       );
 
       setSuggestions(response.data.suggestions);
-    } catch (error: any) {
+    } catch (error) {
       setError(
-        error.response?.data?.error || "An unexpected error occurred. Check the backend."
+        error.response?.data?.error ||
+          "An unexpected error occurred. Check the backend."
       );
     } finally {
       setLoading(false);
@@ -141,25 +184,23 @@ const App: React.FC = () => {
           CV Improvement Suggestions
         </Typography>
         <form onSubmit={handleSubmit} className="form">
-          {/* Job Description */}
           <TextField
-          label="Job Description"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          placeholder="Enter the job description here..."
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
+            label="Job Description"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            placeholder="Enter the job description here..."
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
           />
 
-          {/* File Upload Button */}
           <Button
             variant="outlined"
             component="label"
             startIcon={<UploadFileIcon />}
             className="uploadButton"
           >
-            {file ? file.name : "Upload PDF File"}
+            {file?.name || "Upload PDF File"}
             <input
               type="file"
               accept="application/pdf"
@@ -168,10 +209,8 @@ const App: React.FC = () => {
             />
           </Button>
 
-          {/* Error Message */}
           {error && <Typography color="error">{error}</Typography>}
 
-          {/* Sections Editor */}
           <div className="sections-container">
             {Object.entries(sections).map(([section, contents]) => (
               <Accordion key={section} className="section-accordion">
@@ -180,7 +219,7 @@ const App: React.FC = () => {
                   className="section-header"
                 >
                   <Typography variant="h6">
-                    {sectionTitles[section as keyof typeof sectionTitles] || section}
+                    {sectionTitles[section] || section}
                   </Typography>
                   <IconButton
                     size="small"
@@ -194,34 +233,51 @@ const App: React.FC = () => {
                   </IconButton>
                 </AccordionSummary>
                 <AccordionDetails>
-                  {Array.isArray(contents) ? (
-                    contents.map((item: any, index: number) => (
-                      <div key={index} style={{ marginBottom: "10px" }}>
-                        {/* Group related keys */}
-                        <Typography variant="body2">
-                          {Object.keys(item)
-                            .map(
-                              (key) => (
-                                <React.Fragment key={key}>
-                                  <span style={{ fontWeight: "bold" }}>{formatLabel(key)}</span>
-                                  {`: ${item[key] || "N/A"} `}
-                                </React.Fragment>
-                              )
-                            )}
-                        </Typography>
-                        {editingSections[section] &&
-                          Object.keys(item).map((key) => (
-                            <TextField
-                              key={key}
-                              fullWidth
-                              margin="dense"
-                              label={formatLabel(key)}
-                              value={item[key] || ""}
-                              onChange={(e) =>
-                                handleFieldChange(section, index, key, e.target.value)
-                              }
-                            />
-                          ))}
+                  {Array.isArray(contents) && contents.length > 0 ? (
+                    contents.map((item, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          marginBottom: "10px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div style={{ flexGrow: 1 }}>
+                          {editingSections[section] ? (
+                            Object.keys(item).map((key) => (
+                              <TextField
+                                key={key}
+                                fullWidth
+                                margin="dense"
+                                label={formatLabel(key)}
+                                value={item[key] || ""}
+                                type={
+                                  ["graduation_year", "start_date", "end_date"].includes(key)
+                                    ? "number"
+                                    : "text"
+                                }
+                                onChange={(e) =>
+                                  handleFieldChange(section, index, key, e.target.value)
+                                }
+                              />
+                            ))
+                          ) : (
+                            Object.keys(item).map((key) => (
+                              <Typography key={key} variant="body2">
+                                <strong>{formatLabel(key)}</strong>: {item[key] || "N/A"}
+                              </Typography>
+                            ))
+                          )}
+                        </div>
+                        {editingSections[section] && (
+                          <IconButton
+                            color="secondary"
+                            onClick={() => handleDeleteItem(section, index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -229,34 +285,42 @@ const App: React.FC = () => {
                       No data available for this section.
                     </Typography>
                   )}
-                </AccordionDetails>
 
+                  {editingSections[section] && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => handleAddItem(section)}
+                      style={{ marginTop: "10px" }}
+                    >
+                      Add New Item
+                    </Button>
+                  )}
+                </AccordionDetails>
               </Accordion>
             ))}
           </div>
 
-          {/* Save Button */}
-          {savingButton && <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            style={{ marginTop: "20px" }}
-          >
-            Save All Changes
-          </Button>}
+          {savingButton && (
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              style={{ marginTop: "20px" }}
+            >
+              Save All Changes
+            </Button>
+          )}
         </form>
-        {/* Loading Indicator */}
-        {loading && <LinearProgress className="progressBar" />}
 
+        {loading && <LinearProgress className="progressBar" />}
       </Paper>
-        
-        {/* print suggestions here */}
-        <Typography variant="h6" align="center" gutterBottom>
-          Suggestions
-        </Typography>
-        <Typography variant="body1" align="center" gutterBottom>
-          {suggestions}
-        </Typography>
+
+      <Typography variant="h6" align="center" gutterBottom>
+        Suggestions
+      </Typography>
+      <Typography variant="body1" align="center" gutterBottom>
+        {suggestions}
+      </Typography>
     </Container>
   );
 };
