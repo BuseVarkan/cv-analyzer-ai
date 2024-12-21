@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Typography, Button, Container, Paper, LinearProgress } from "@mui/material";
 import axios from "axios";
+import './suggestionsPage.css';
 
 const SuggestionsPage = () => {
   const location = useLocation();
@@ -37,21 +38,63 @@ const SuggestionsPage = () => {
     }
   }, [sections, jobDescription, navigate]);
 
+  const formatSuggestions = (text: string) => {
+    const lines = text.split('\n');
+    let inCodeBlock = false;
+    const htmlLines: string[] = [];
+
+    for (let line of lines) {
+      if (!inCodeBlock) {
+        if (line.trim().startsWith('```')) {
+          inCodeBlock = true;
+          htmlLines.push('<pre><code>');
+          continue; 
+        }
+      } else {
+        if (line.trim() === '```') {
+          inCodeBlock = false;
+          htmlLines.push('</code></pre>');
+          continue;
+        } else {
+          htmlLines.push(line);
+          continue;
+        }
+      }
+
+      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      if (line.startsWith('### ')) {
+        const headingText = line.replace('### ', '');
+        htmlLines.push(`<h3>${headingText}</h3>`);
+      } else if (line.trim() !== '') {
+        htmlLines.push(`<p>${line}</p>`);
+      }
+    }
+
+    if (inCodeBlock) {
+      htmlLines.push('</code></pre>');
+    }
+
+    return htmlLines.join('\n');
+  };
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
         <Typography variant="h4" align="center" gutterBottom>
           Suggestions
         </Typography>
-
+  
         {loading && <LinearProgress />}
         {error && <Typography color="error">{error}</Typography>}
         {!loading && suggestions && (
-          <Typography variant="body1" align="center">
-            {suggestions}
-          </Typography>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: formatSuggestions(suggestions),
+            }}
+          />
         )}
-
+  
         <Button variant="outlined" onClick={() => navigate("/")}>
           Back to CV Editor
         </Button>
