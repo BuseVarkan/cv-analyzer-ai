@@ -19,6 +19,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "./parseAndEdit.css";
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 
 const sectionTitles = {
@@ -54,22 +55,26 @@ const defaultSectionItem = {
 };
 
 const ParseAndEdit = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const savedState = location.state || {};
+
   const [file, setFile] = useState<File | null>(null);
-  const [sections, setSections] = useState<Record<string, any>>({});
-  const [suggestions, setSuggestions] = useState("");
+  const [sections, setSections] = useState<Record<string, any>>(savedState.sections || {});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [savingButton, setSavingButton] = useState(false);
+  const [savingButton, setSavingButton] = useState(
+    savedState.showSaveButton || false
+  );
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
-  const [jobDescription, setJobDescription] = useState("");
-  const navigate = useNavigate();
+  const [jobDescription, setJobDescription] = useState(savedState.jobDescription || "");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
       setError("");
       setLoading(true);
-      setSuggestions("");
 
       try {
         const formData = new FormData();

@@ -95,7 +95,14 @@ const SuggestionsPage = () => {
           />
         )}
   
-        <Button variant="outlined" onClick={() => navigate("/")}>
+        <Button variant="outlined" onClick={() => 
+        navigate("/", {
+          state: {
+            sections,
+            jobDescription,
+            showSaveButton: true,
+          },
+        })}>
           Back to CV Editor
         </Button>
       </Paper>
