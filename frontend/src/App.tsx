@@ -1,25 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { 
-  Container, 
-  Button, 
-  Typography, 
-  Paper, 
-  LinearProgress,
-  TextField,
+import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Typography,
+  TextField,
+  Button,
   IconButton,
+  Paper,
+  Container,
+  LinearProgress,
 } from "@mui/material";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import DeleteIcon from "@mui/icons-material/Delete";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import "./App.css";
 
-const sectionTitles = {
+const sectionTitles: { [key: string]: string } = {
   personal_info: "Personal Information",
   work_experience: "Work Experience",
   education: "Education",
@@ -28,8 +27,9 @@ const sectionTitles = {
   languages: "Languages",
   projects: "Projects",
   volunteering: "Volunteering",
-  unknown: "Additional Information"
+  unknown: "Additional Information",
 };
+
 
 const App: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -37,6 +37,7 @@ const App: React.FC = () => {
   const [suggestions, setSuggestions] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [savingButton, setSavingButton] = useState(false);
   const [editingSections, setEditingSections] = useState<{ [key: string]: boolean }>({});
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,13 +62,6 @@ const App: React.FC = () => {
         );
         
         setSections(response.data.structured_content || {});
-        // Initialize editing state for all sections
-        const initialEditingState: { [key: string]: boolean } = {};
-        Object.keys(response.data.structured_content || {}).forEach(section => {
-          initialEditingState[section] = false;
-        });
-        setEditingSections(initialEditingState);
-
       } catch (error: any) {
         setError(
           error.response?.data?.error || "An error occurred while extracting text."
@@ -75,22 +69,35 @@ const App: React.FC = () => {
         setSections({});
       } finally {
         setLoading(false);
+        setSavingButton(true);
       }
     }
   };
 
   const toggleSectionEdit = (section: string) => {
-    setEditingSections(prev => ({
+    setEditingSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
-  const handleSectionChange = (section: string, index: number, value: string) => {
-    setSections(prev => ({
-      ...prev,
-      [section]: prev[section].map((content, i) => i === index ? value : content)
-    }));
+  const handleFieldChange = (
+    section: string,
+    index: number,
+    key: string,
+    value: string
+  ) => {
+    setSections((prevSections: any) => {
+      const updatedSection = [...prevSections[section]];
+      updatedSection[index] = {
+        ...updatedSection[index],
+        [key]: value,
+      };
+      return {
+        ...prevSections,
+        [section]: updatedSection,
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,23 +106,10 @@ const App: React.FC = () => {
     setError("");
     setLoading(true);
 
-    // Combine all sections into one text
-    const combinedText = Object.entries(sections)
-      .map(([section, contents]) => {
-        return `### ${sectionTitles[section as keyof typeof sectionTitles] || section}\n${contents.join('\n\n')}`;
-      })
-      .join('\n\n');
-
-    if (!combinedText.trim()) {
-      setError("Please provide some text to analyze.");
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/generate-suggestions",
-        { cv_text: combinedText },
+        { cv_text: sections },
         {
           headers: {
             "Content-Type": "application/json",
@@ -133,44 +127,10 @@ const App: React.FC = () => {
     }
   };
 
-  const formatSuggestions = (text: string) => {
-    const lines = text.split('\n');
-    let inCodeBlock = false;
-    const htmlLines: string[] = [];
-
-    for (let line of lines) {
-      if (!inCodeBlock) {
-        if (line.trim().startsWith('```')) {
-          inCodeBlock = true;
-          htmlLines.push('<pre><code>');
-          continue; 
-        }
-      } else {
-        if (line.trim() === '```') {
-          inCodeBlock = false;
-          htmlLines.push('</code></pre>');
-          continue;
-        } else {
-          htmlLines.push(line);
-          continue;
-        }
-      }
-
-      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-      if (line.startsWith('### ')) {
-        const headingText = line.replace('### ', '');
-        htmlLines.push(`<h3>${headingText}</h3>`);
-      } else if (line.trim() !== '') {
-        htmlLines.push(`<p>${line}</p>`);
-      }
-    }
-
-    if (inCodeBlock) {
-      htmlLines.push('</code></pre>');
-    }
-
-    return htmlLines.join('\n');
+  const formatLabel = (key: string) => {
+    return key
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   return (
@@ -180,6 +140,7 @@ const App: React.FC = () => {
           CV Improvement Suggestions
         </Typography>
         <form onSubmit={handleSubmit} className="form">
+          {/* File Upload Button */}
           <Button
             variant="outlined"
             component="label"
@@ -194,7 +155,10 @@ const App: React.FC = () => {
               onChange={handleFileChange}
             />
           </Button>
-          
+
+          {/* Error Message */}
+          {error && <Typography color="error">{error}</Typography>}
+
           {/* Sections Editor */}
           <div className="sections-container">
             {Object.entries(sections).map(([section, contents]) => (
@@ -206,8 +170,8 @@ const App: React.FC = () => {
                   <Typography variant="h6">
                     {sectionTitles[section as keyof typeof sectionTitles] || section}
                   </Typography>
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleSectionEdit(section);
@@ -218,55 +182,60 @@ const App: React.FC = () => {
                   </IconButton>
                 </AccordionSummary>
                 <AccordionDetails>
-                  {contents.map((content, index) => (
-                    <TextField
-                      key={`${section}-${index}`}
-                      multiline
-                      fullWidth
-                      variant="outlined"
-                      value={content}
-                      onChange={(e) => handleSectionChange(section, index, e.target.value)}
-                      disabled={!editingSections[section]}
-                      className="section-content"
-                      sx={{ mb: 2 }}
-                    />
-                  ))}
+                  {Array.isArray(contents) ? (
+                    contents.map((item: any, index: number) => (
+                      <div key={index} style={{ marginBottom: "10px" }}>
+                        {/* Group related keys */}
+                        <Typography variant="body2">
+                          {Object.keys(item)
+                            .map(
+                              (key) => (
+                                <React.Fragment key={key}>
+                                  <span style={{ fontWeight: "bold" }}>{formatLabel(key)}</span>
+                                  {`: ${item[key] || "N/A"} `}
+                                </React.Fragment>
+                              )
+                            )}
+                        </Typography>
+                        {editingSections[section] &&
+                          Object.keys(item).map((key) => (
+                            <TextField
+                              key={key}
+                              fullWidth
+                              margin="dense"
+                              label={formatLabel(key)}
+                              value={item[key] || ""}
+                              onChange={(e) =>
+                                handleFieldChange(section, index, key, e.target.value)
+                              }
+                            />
+                          ))}
+                      </div>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="textSecondary">
+                      No data available for this section.
+                    </Typography>
+                  )}
                 </AccordionDetails>
+
               </Accordion>
             ))}
           </div>
 
-          <Button
+          {/* Save Button */}
+          {savingButton && <Button
             type="submit"
             variant="contained"
             color="primary"
-            className="submitButton"
-            disabled={loading}
+            style={{ marginTop: "20px" }}
           >
-            {loading ? "Processing..." : "Get Suggestions"}
-          </Button>
+            Save All Changes
+          </Button>}
         </form>
+        {/* Loading Indicator */}
         {loading && <LinearProgress className="progressBar" />}
-        {suggestions && (
-          <div className="suggestions">
-            <Typography variant="h5" gutterBottom className="suggestionsTitle">
-              Suggestions:
-            </Typography>
-            <div
-              className="suggestionsContent"
-              dangerouslySetInnerHTML={{ __html: formatSuggestions(suggestions) }}
-            />
-          </div>
-        )}
-        {error && (
-          <Typography
-            variant="body1"
-            color="error"
-            className="errorText"
-          >
-            {error}
-          </Typography>
-        )}
+
       </Paper>
     </Container>
   );

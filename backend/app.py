@@ -1,7 +1,8 @@
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from utils.ai_utils import generate_suggestions
-from utils.pdf_utils import extract_text_from_pdf, clean_and_structure_cv_text, format_structured_content
+from utils.ai_utils import generate_suggestions, pdf_extractor
+from utils.pdf_utils import extract_text_from_pdf
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -21,11 +22,10 @@ def extract_text():
         if not raw_text.strip():
             return jsonify({"error": "No text found in the uploaded PDF"}), 400
         
-        structured_content = clean_and_structure_cv_text(raw_text)
-        formatted_text = format_structured_content(structured_content)
+        json_content = pdf_extractor(raw_text)
+        structured_content = json.loads(json_content)
             
         return jsonify({
-            "cv_text": formatted_text,
             "structured_content": structured_content
         })
 
