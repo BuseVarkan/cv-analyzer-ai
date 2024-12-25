@@ -55,5 +55,50 @@ def generate_suggestions_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/analyze-cv', methods=['OPTIONS', 'POST'])
+def analyze_cv():
+    if request.method == 'OPTIONS':
+        return jsonify({'message': 'CORS preflight OK'}), 200
+
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    try:
+        return {
+  "overall_score": 78,
+  "breakdown": [
+  {
+      "title": "Skills & Achievements",
+      "score": 85,
+      "description": "Good alignment with job description",
+      "details": "Your CV highlights relevant skills and experiences such as React, TypeScript, and frontend development. Consider emphasizing more specific achievements related to team collaboration and leadership.",
+    },
+    {
+      "title": "Language & Tone",
+      "score": 75,
+      "description": "Average",
+      "details": "Your CV uses a professional tone and formatting. However, it can be improved by using shorter sentences, removing passive voice, and ensuring consistent formatting throughout.",
+    },
+    {
+      "title": "Soft Skills",
+      "score": 90,
+      "description": "Very Good",
+      "details": "Your CV effectively showcases soft skills such as teamwork, problem-solving, and leadership. Consider adding examples to further illustrate these skills in action.",
+    },
+    {
+      "title": "Impact Score",
+      "score": 80,
+      "description": "Solid performance",
+      "details": "Your CV provides a strong foundation. Further improvements in brevity, formatting, and emphasizing relevant achievements will help make it outstanding.",
+    }],
+  "suggestions": [
+    { "title": "Impact", "content": ["Use more quantified achievements.", "Add action verbs."] },
+    { "title": "Brevity", "content": ["Shorten long sentences.", "Avoid redundant information."] }
+  ]
+}
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

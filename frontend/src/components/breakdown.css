@@ -1,0 +1,46 @@
+/* Styles for the grid and cards */
+.grid-container {
+    margin: 20px;
+  }
+  
+  .card {
+    cursor: pointer;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 20px !important;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .card:hover {
+    transform: scale(1.02);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card-active {
+    border: 2px solid #4caf50;
+  }
+  
+  .card-score {
+    border-radius: 20px;
+    font-weight: bold;
+  }
+  
+  .card-score.high {
+    color: #4caf50;
+  }
+  
+  .card-score.medium {
+    color: #ff9800;
+  }
+  
+  .card-score.low {
+    color: #f44336;
+  }
+  
+  .collapse-section {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 20px !important;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
