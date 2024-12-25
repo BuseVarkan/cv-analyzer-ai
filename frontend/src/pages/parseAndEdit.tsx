@@ -123,7 +123,7 @@ const ParseAndEdit = () => {
       const updatedSection = [...prevSections[section]];
       updatedSection[index] = {
         ...updatedSection[index],
-        [key]: value,
+        [key]: String(value),
       };
       return {
         ...prevSections,
@@ -154,7 +154,7 @@ const ParseAndEdit = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/suggestions", { state: { sections, jobDescription } });
+    navigate("/dashboard", { state: { sections, jobDescription } });
   };
 
   const formatLabel = (key: string) => {

@@ -14,8 +14,7 @@ def generate_suggestions(cv_json: json, job_description: str) -> str:
             {"role": "system", "content": suggestions_system_prompt(job_description)},
             {"role": "user", "content": json.dumps(cv_json)}
         ],
-        temperature=0.0,
-        max_tokens=1500
+        temperature=0.0
     )
 
     suggestions = completion.choices[0].message.content

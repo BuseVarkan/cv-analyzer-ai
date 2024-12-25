@@ -2,11 +2,53 @@ import React, { useState } from 'react';
 import { Grid, Card, CardContent, Typography, Collapse } from '@mui/material';
 import './breakdown.css';
 
-const Breakdown = ({ sections }: { sections: Array<{ title: string, score: number, description: string, details: string }> }) => {
+const formatSuggestions = (text: string) => {
+  const lines = text.split('\n');
+  let inCodeBlock = false;
+  const htmlLines: string[] = [];
+
+  for (let line of lines) {
+    if (!inCodeBlock) {
+      if (line.trim().startsWith('```')) {
+        inCodeBlock = true;
+        htmlLines.push('<pre><code>');
+        continue; 
+      }
+    } else {
+      if (line.trim() === '```') {
+        inCodeBlock = false;
+        htmlLines.push('</code></pre>');
+        continue;
+      } else {
+        htmlLines.push(line);
+        continue;
+      }
+    }
+
+    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    if (line.startsWith('### ')) {
+      const headingText = line.replace('### ', '');
+      htmlLines.push(`<h3>${headingText}</h3>`);
+    } else if (line.trim() !== '') {
+      htmlLines.push(`<p>${line}</p>`);
+    }
+  }
+
+  if (inCodeBlock) {
+    htmlLines.push('</code></pre>');
+  }
+
+  return htmlLines.join('\n');
+};
+
+
+
+const Breakdown = ({ sections }: { sections: Array<{ title: string, score: number, suggestions: string }> }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const handleCardClick = (title: string) => {
-    setActiveSection((prev) => (prev === title ? null : title)); // Toggle active state
+    setActiveSection((prev) => (prev === title ? null : title));
   };
 
   const getScoreClass = (score: number) => {
@@ -32,19 +74,22 @@ const Breakdown = ({ sections }: { sections: Array<{ title: string, score: numbe
                 >
                   {section["score"]} / 100
                 </Typography>
-                <Typography>{section["description"]}</Typography>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {/* Detailed Text Section */}
       {sections.map((section, index) => (
         <Collapse in={activeSection === section["title"]} timeout="auto" unmountOnExit key={index}>
           <Card className="collapse-section">
-            <Typography variant="h6">{section["title"]} Details</Typography>
-            <Typography>{section["details"]}</Typography>
+            <Typography variant="h6">{section["title"]} Suggestions</Typography>
+            <Typography
+                  variant="body2"
+                  dangerouslySetInnerHTML={{
+                    __html: formatSuggestions(section["suggestions"]),
+                  }}
+                />
           </Card>
         </Collapse>
       ))}
