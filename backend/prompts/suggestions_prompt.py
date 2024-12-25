@@ -20,6 +20,7 @@ Your feedback must follow a specific structured JSON format to ensure it integra
    - The suggestions should be relevant and specific to the CV content.
    - I want a detailed and long suggestions for each category.
    - Cover every detail to enhance the CV. Don't miss anything. Don't limit yourself to a few suggestions.
+   - You must use bullet points, lists, or paragraphs to provide suggestions.
 
 3. Calculate an **overall_score** out of 100 that represents the cumulative effectiveness of the CV based on the individual category scores.
 

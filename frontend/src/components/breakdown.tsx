@@ -30,6 +30,8 @@ const formatSuggestions = (text: string) => {
     if (line.startsWith('### ')) {
       const headingText = line.replace('### ', '');
       htmlLines.push(`<h3>${headingText}</h3>`);
+    } else if (/^\d+\.\s/.test(line)) {
+      htmlLines.push(`<li>${line.replace(/^\d+\.\s/, '')}</li>`);
     } else if (line.trim() !== '') {
       htmlLines.push(`<p>${line}</p>`);
     }
@@ -37,6 +39,10 @@ const formatSuggestions = (text: string) => {
 
   if (inCodeBlock) {
     htmlLines.push('</code></pre>');
+  }
+
+  if (htmlLines.some((htmlLine) => htmlLine.startsWith('<li>'))) {
+    return htmlLines.join('\n').replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
   }
 
   return htmlLines.join('\n');
