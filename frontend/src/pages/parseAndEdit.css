@@ -3,7 +3,9 @@
     margin-top: 50px;
     max-width: 100%;
   }
-  
+  body {
+    background-color: rgb(228, 239, 226);
+  }
   /* Paper Styling */
   .paper {
     padding: 30px;

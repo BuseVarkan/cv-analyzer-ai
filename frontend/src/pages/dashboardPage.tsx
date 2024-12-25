@@ -85,8 +85,8 @@ const DashboardPage = () => {
   }
 
   return (
-    <Container>
-      <Paper elevation={3} style={{ padding: "20px", marginTop: "20px" }}>
+    <Container className="dashboardPage">
+      <Paper elevation={3} className="dashboardPaper">
         <Typography variant="h4" align="center" gutterBottom>
           Dashboard
         </Typography>
@@ -96,18 +96,23 @@ const DashboardPage = () => {
           {data && <Breakdown sections={data["sections"]} />}
         </div>
 
-        <Button variant="outlined" onClick={() => 
-        navigate("/", {
-          state: {
-            sections,
-            jobDescription,
-            showSaveButton: true,
-          },
-        })}>
+        <Button
+          variant="outlined"
+          onClick={() =>
+            navigate("/", {
+              state: {
+                sections,
+                jobDescription,
+                showSaveButton: true,
+              },
+            })
+          }
+        >
           Back to CV Editor
         </Button>
       </Paper>
     </Container>
+
   );
 };
 
