@@ -50,6 +50,7 @@ const formatSuggestions = (text: string) => {
 
 
 
+
 const Breakdown = ({ sections }: { sections: Array<{ title: string, score: number, suggestions: string }> }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 

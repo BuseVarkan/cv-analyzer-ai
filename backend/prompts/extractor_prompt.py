@@ -12,7 +12,7 @@ def system_prompt():
        - "phone": Phone number.
        - "address": Physical address.
 
-    2. 'work_experience': This section covers the individual's professional history. Example fields include:
+    2. 'work_experience': This section covers the individual's professional history of full-time, part-time or internships. Example fields include:
        - "company": Name of the company or organization.
        - "position": Job title or role.
        - "start_date": When the individual started the role.

@@ -69,6 +69,7 @@ const ParseAndEdit = () => {
   );
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [jobDescription, setJobDescription] = useState(savedState.jobDescription || "");
+  const [jobDescriptionError, setJobDescriptionError] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -154,6 +155,11 @@ const ParseAndEdit = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!jobDescription.trim()) {
+      setJobDescriptionError(true);
+      return;
+    }
+    setJobDescriptionError(false);
     navigate("/dashboard", { state: { sections, jobDescription } });
   };
 
@@ -178,6 +184,8 @@ const ParseAndEdit = () => {
             placeholder="Enter the job description here..."
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
+            error={jobDescriptionError}
+            helperText={jobDescriptionError ? "Job description is required." : ""}
           />
 
           <Button
