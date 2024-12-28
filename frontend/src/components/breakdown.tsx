@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, Card, CardContent, Typography, Collapse } from '@mui/material';
+import { Grid2, Card, CardContent, Typography, Collapse } from '@mui/material';
 import './breakdown.css';
 
 const formatSuggestions = (text: string) => {
@@ -66,9 +66,9 @@ const Breakdown = ({ sections }: { sections: Array<{ title: string, score: numbe
 
   return (
     <div>
-      <Grid container spacing={2} className="grid-container">
+      <Grid2 container spacing={2} className="grid-container">
         {sections.map((section, index) => (
-          <Grid item xs={6} md={3} key={index}>
+          <Grid2 size={{ xs: 6, md: 3 }} key={index}>
             <Card
               onClick={() => handleCardClick(section["title"])}
               className={`card ${activeSection === section["title"] ? 'card-active' : ''}`}
@@ -83,9 +83,9 @@ const Breakdown = ({ sections }: { sections: Array<{ title: string, score: numbe
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid2>
         ))}
-      </Grid>
+      </Grid2>
 
       {sections.map((section, index) => (
         <Collapse in={activeSection === section["title"]} timeout="auto" unmountOnExit key={index}>

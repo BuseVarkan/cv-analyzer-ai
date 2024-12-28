@@ -5,6 +5,7 @@ import axios from "axios";
 import OverallScore from "../components/circularProgress.tsx";
 import Breakdown from "../components/breakdown.tsx";
 import "./dashboardPage.css";
+import SampleQuestions from "../components/sampleQuestions.tsx";
 
 
 const DashboardPage = () => {
@@ -15,6 +16,7 @@ const DashboardPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [questions, setQuestions] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +42,27 @@ const DashboardPage = () => {
       fetchData();
     } else {
       navigate("/");
+    }
+  }, [sections, jobDescription, navigate]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:5000/generate-questions",
+          { cv_text: sections, job_description: jobDescription },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        setQuestions(response.data.questions);
+      } catch (err) {
+        console.error("Error fetching questions:", err);
+      }
+    };
+
+    if (sections && jobDescription) {
+      fetchQuestions();
     }
   }, [sections, jobDescription, navigate]);
 
@@ -94,6 +117,8 @@ const DashboardPage = () => {
         <div className="dashboardContent">
           {data && <OverallScore score={data["overall_score"]} />}
           {data && <Breakdown sections={data["sections"]} />}
+          <h2 className="header">Sample Interview Questions</h2>
+          {data && questions && <SampleQuestions sections={questions["questions"]} />}
         </div>
 
         <Button
