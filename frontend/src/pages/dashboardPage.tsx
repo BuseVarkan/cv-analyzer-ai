@@ -116,6 +116,7 @@ const DashboardPage = () => {
 
         <div className="dashboardContent">
           {data && <OverallScore score={data["overall_score"]} />}
+          <h2 className="info">Click on sections for details.</h2>
           {data && <Breakdown sections={data["sections"]} />}
           <h2 className="header">Sample Interview Questions</h2>
           {data && questions && <SampleQuestions sections={questions["questions"]} />}

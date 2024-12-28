@@ -39,4 +39,13 @@
     color: #333333;
     margin: 16px 0;
     text-align:center;
-}
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  .info {
+    font-size: 0.8rem;
+    color: #333333;
+    margin: 16px 0;
+    text-align:center;
+  }
