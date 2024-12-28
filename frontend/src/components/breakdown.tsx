@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Grid2, Card, CardContent, Typography, Collapse } from '@mui/material';
-import './breakdown.css';
 
 const formatSuggestions = (text: string) => {
   const lines = text.split('\n');

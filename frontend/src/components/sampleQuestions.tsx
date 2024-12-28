@@ -19,7 +19,7 @@ const SampleQuestions = ({ sections }: { sections: Array<{ question: string, ans
                             className={`card ${activeSection === section["question"] ? 'card-active' : ''}`}
                         >
                             <CardContent>
-                                <Typography variant="h6" sx={{ fontSize: '1.15rem' }}>{section["question"]}</Typography>
+                                <Typography variant="h6" sx={{ fontSize: '1.10rem' }}>{section["question"]}</Typography>
                                 <Typography
                                     variant="h4"
                                     className={`card-score ${section["answer"]}`}

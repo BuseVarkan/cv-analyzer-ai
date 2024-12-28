@@ -17,7 +17,6 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
-import "./parseAndEdit.css";
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from "react-router-dom";
 
@@ -221,9 +220,8 @@ const ParseAndEdit = () => {
                       e.stopPropagation();
                       toggleSectionEdit(section);
                     }}
-                    className="edit-button"
                   >
-                    {editingSections[section] ? <SaveIcon /> : <EditIcon />}
+                    {editingSections[section] ? <SaveIcon/> : <EditIcon />}
                   </IconButton>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -266,10 +264,9 @@ const ParseAndEdit = () => {
                         </div>
                         {editingSections[section] && (
                           <IconButton
-                            color="secondary"
                             onClick={() => handleDeleteItem(section, index)}
                           >
-                            <DeleteIcon />
+                            <DeleteIcon/>
                           </IconButton>
                         )}
                       </div>
@@ -282,6 +279,7 @@ const ParseAndEdit = () => {
 
                   {editingSections[section] && (
                     <Button
+                      className="uploadButton"
                       variant="outlined"
                       onClick={() => handleAddItem(section)}
                       style={{ marginTop: "10px" }}
@@ -296,9 +294,9 @@ const ParseAndEdit = () => {
 
           {savingButton && (
             <Button
+             className="navigateButton"
               type="submit"
               variant="contained"
-              color="primary"
               style={{ marginTop: "20px" }}
             >
               Save All Changes

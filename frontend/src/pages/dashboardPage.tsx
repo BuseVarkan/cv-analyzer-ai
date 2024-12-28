@@ -4,7 +4,6 @@ import { Typography, Button, Container, Paper, LinearProgress, CircularProgress 
 import axios from "axios";
 import OverallScore from "../components/circularProgress.tsx";
 import Breakdown from "../components/breakdown.tsx";
-import "./dashboardPage.css";
 import SampleQuestions from "../components/sampleQuestions.tsx";
 
 
@@ -123,6 +122,7 @@ const DashboardPage = () => {
         </div>
 
         <Button
+          className="navigateButton"
           variant="outlined"
           onClick={() =>
             navigate("/", {
