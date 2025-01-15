@@ -87,7 +87,6 @@ def generate_questions_endpoint():
 
         json_questions = json.loads(questions)
 
-        print(json_questions)
         return jsonify({"questions": json_questions})
 
 

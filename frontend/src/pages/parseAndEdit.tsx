@@ -112,13 +112,6 @@ const ParseAndEdit = () => {
   };
 
   const handleFieldChange = (section: string, index: number, key: string, value: string) => {
-    if (
-      (key === "graduation_year" || key === "start_date" || key === "end_date") &&
-      isNaN(Number(value))
-    ) {
-      return;
-    }
-
     setSections((prevSections) => {
       const updatedSection = [...prevSections[section]];
       updatedSection[index] = {
@@ -244,11 +237,7 @@ const ParseAndEdit = () => {
                                 margin="dense"
                                 label={formatLabel(key)}
                                 value={item[key] || ""}
-                                type={
-                                  ["graduation_year", "start_date", "end_date"].includes(key)
-                                    ? "number"
-                                    : "text"
-                                }
+                                type={"text"}
                                 onChange={(e) =>
                                   handleFieldChange(section, index, key, e.target.value)
                                 }

@@ -22,7 +22,7 @@ const SampleQuestions = ({ sections }: { sections: Array<{ question: string, ans
                                 <Typography variant="h6" sx={{ fontSize: '1.10rem' }}>{section["question"]}</Typography>
                                 <Typography
                                     variant="h4"
-                                    className={`card-score ${section["answer"]}`}
+                                    className={`card-score`}
                                 >
                                 </Typography>
                             </CardContent>
